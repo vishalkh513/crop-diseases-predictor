@@ -3,6 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
+// Check if we're in production and backend is not configured
+const isProduction = import.meta.env.PROD;
+const isBackendConfigured = import.meta.env.VITE_API_BASE_URL && 
+                          !import.meta.env.VITE_API_BASE_URL.includes('your-backend-url');
+
 
 async function readJsonSafely(response) {
   const contentType = response.headers.get("content-type") || "";
@@ -162,6 +167,21 @@ function App() {
     }
   }
 
+  // Backend configuration notice component
+function BackendNotConfigured() {
+  return (
+    <div className="glass-panel" style={{ margin: '2rem 0', padding: '1.5rem', textAlign: 'center' }}>
+      <h3 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Backend Not Configured</h3>
+      <p style={{ marginBottom: '1rem' }}>
+        This frontend is deployed but the backend API is not configured yet.
+      </p>
+      <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+        Please deploy the backend and set the VITE_API_BASE_URL environment variable.
+      </p>
+    </div>
+  );
+}
+
   return (
     <div className="app-shell">
       <div className="ambient ambient-left" />
@@ -243,11 +263,14 @@ function App() {
         </section>
 
         <section className="content-section analyzer-grid" id="analyzer">
-          <div className="glass-panel uploader-panel reveal">
-            <div className="section-heading compact">
-              <p className="eyebrow">Analyzer</p>
-              <h2>Upload a leaf image and call the deployed Flask API.</h2>
-            </div>
+          {isProduction && !isBackendConfigured ? (
+            <BackendNotConfigured />
+          ) : (
+            <div className="glass-panel uploader-panel reveal">
+              <div className="section-heading compact">
+                <p className="eyebrow">Analyzer</p>
+                <h2>Upload a leaf image and call the deployed Flask API.</h2>
+              </div>
 
             <form onSubmit={handleSubmit} className="upload-form">
               <label className="upload-dropzone" htmlFor="leaf-upload">
@@ -276,51 +299,52 @@ function App() {
               {error ? <p className="status-message error">{error}</p> : null}
               {!error && apiNotice ? <p className="status-message">{apiNotice}</p> : null}
             </form>
-          </div>
 
-          <div className="glass-panel result-panel reveal delay-1">
-            <div className="section-heading compact">
-              <p className="eyebrow">Prediction result</p>
-              <h2>{result ? result.displayName : "Your diagnosis will appear here."}</h2>
-            </div>
+            <div className="glass-panel result-panel reveal delay-1">
+              <div className="section-heading compact">
+                <p className="eyebrow">Prediction result</p>
+                <h2>{result ? result.displayName : "Your diagnosis will appear here."}</h2>
+              </div>
 
-            {result ? (
-              <div className="result-stack">
-                <div className="confidence-row">
-                  <span className="confidence-label">Confidence</span>
-                  <strong>{result.confidence}%</strong>
-                </div>
-                <p>{result.description}</p>
-                <div className="split-panel">
-                  <article>
-                    <h3>{result.isHealthy ? "Plant care guidance" : "Prevention steps"}</h3>
-                    <p>{result.possibleSteps}</p>
-                  </article>
-                  <article>
-                    <h3>{result.isHealthy ? "Recommended fertilizer" : "Recommended supplement"}</h3>
-                    <p>{result.supplement?.name || "No supplement linked for this class."}</p>
-                    {result.supplement?.buyLink ? (
-                      <a className="secondary-button inline-button" href={result.supplement.buyLink} target="_blank" rel="noreferrer">
-                        View Product
-                      </a>
-                    ) : null}
-                  </article>
-                </div>
-                {result.referenceImage ? (
-                  <div className="reference-frame">
-                    <img src={result.referenceImage} alt={result.displayName} />
+              {result ? (
+                <div className="result-stack">
+                  <div className="confidence-row">
+                    <span className="confidence-label">Confidence</span>
+                    <strong>{result.confidence}%</strong>
                   </div>
-                ) : null}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <p>
-                  The API response includes the disease label, confidence score, prevention guidance,
-                  and supplement metadata from the original project dataset.
-                </p>
-              </div>
-            )}
+                  <p>{result.description}</p>
+                  <div className="split-panel">
+                    <article>
+                      <h3>{result.isHealthy ? "Plant care guidance" : "Prevention steps"}</h3>
+                      <p>{result.possibleSteps}</p>
+                    </article>
+                    <article>
+                      <h3>{result.isHealthy ? "Recommended fertilizer" : "Recommended supplement"}</h3>
+                      <p>{result.supplement?.name || "No supplement linked for this class."}</p>
+                      {result.supplement?.buyLink ? (
+                        <a className="secondary-button inline-button" href={result.supplement.buyLink} target="_blank" rel="noreferrer">
+                          View Product
+                        </a>
+                      ) : null}
+                    </article>
+                  </div>
+                  {result.referenceImage ? (
+                    <div className="reference-frame">
+                      <img src={result.referenceImage} alt={result.displayName} />
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <p>
+                    The API response includes the disease label, confidence score, prevention guidance,
+                    and supplement metadata from the original project dataset.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
+          )}
         </section>
 
         <section className="content-section reveal">
