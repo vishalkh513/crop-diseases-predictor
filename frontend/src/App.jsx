@@ -351,8 +351,6 @@ function App() {
             </article>
           </div>
         </section>
-
-        </section>
       </main>
     </div>
   );
