@@ -180,7 +180,7 @@ function App() {
 
         <div className="hero-grid">
           <section className="hero-copy glass-panel reveal">
-            <p className="eyebrow">Created by Nishant Makwana</p>
+            <p className="eyebrow">Plant Disease Detection</p>
             <p className="hero-lead">
               Upload a plant leaf image, call the Render API, and get disease insights powered by a
               PyTorch model hosted through Hugging Face.
